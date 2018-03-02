@@ -6,6 +6,7 @@
 package com.nipatriknilsson;
 
 import java.net.URL;
+import java.util.Optional;
 import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.collections.ObservableList;
@@ -14,16 +15,21 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
 
 /**
  *
@@ -74,11 +80,24 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private CheckMenuItem menuItemColor7;
     
-    Button[][] boardPegs = new Button[rows][4];
-    Button[] boardChecks = new Button[rows];
-    int[] intcolorselected = new int [ columns ];
-    int[] intcolorcurrent = new int [ columns ];
+    Button[][] boardPegs = new Button [ rows ][ columns ];
+    Button[] boardChecks = new Button [ rows ];
+    CheckBox[][] boardFeedback = new CheckBox [ rows ][ columns ];
+    ColorData[] colordataSelected = new ColorData [ columns ];
+    ColorData[] colordataCurrent = new ColorData [ columns ];
+    @FXML
+    private CheckMenuItem menuItemOptionMultiple;
+    @FXML
+    private MenuItem menuitemTest;
+    @FXML
+    private Tab tableViewLog;
     
+    private TableColumn<TableView, String> tableViewHighScoreTime;
+    @FXML
+    private ListView<String> listViewHighScore;
+    @FXML
+    private ListView<String> listViewLog;
+
     private void initializeButton ( Button button ) {
         initializeButton ( button, null );
     }
@@ -103,7 +122,7 @@ public class FXMLDocumentController implements Initializable {
                 }));
 
                 initializeButton ( boardPegs[r][c] );
-                boardPegs[r][c].setDisable(true);
+                boardPegs [ r ][ c ].setDisable(true);
 
                 gridPaneBoard.add ( boardPegs[r][c], c + columnoffset, rows - r - 1 );
             }
@@ -117,12 +136,26 @@ public class FXMLDocumentController implements Initializable {
             }));
 
             gridPaneBoard.add ( boardChecks [ r ], 5, rows - r - 1 );
+            
+            GridPane gridpane = new GridPane ();
+            for ( int c = 0; c < columns; c ++ )
+            {
+                boardFeedback [ r ][ c ] = new CheckBox ( "" );
+                boardFeedback [ r ][ c ].setDisable ( true );
+            }
+            
+            gridpane.add ( boardFeedback [ r ][ 0 ], 0, 0 );
+            gridpane.add ( boardFeedback [ r ][ 1 ], 1, 0 );
+            gridpane.add ( boardFeedback [ r ][ 2 ], 0, 1 );
+            gridpane.add ( boardFeedback [ r ][ 3 ], 1, 1 );
+
+            gridPaneBoard.add ( gridpane, 5, rows - r - 1 );
         }
 
         for ( int c = 0; c < columns; c ++ )
         {
-            boardPegs [ 0 ][ c ].setDisable( false );
-            intcolorselected [ c ] = -1;
+            colordataSelected [ c ] = new ColorData ();
+            colordataCurrent [ c ] = new ColorData ();
         }
 
         setMenuItem ( menuItemColor0, colorData [ 0 ] );
@@ -145,8 +178,40 @@ public class FXMLDocumentController implements Initializable {
 
         gridPaneBoard.setStyle("-fx-border-color: #000000; -fx-border-width: 1px;");
         
+        SQLiteJDBC.logHistory ( "Started" );
+        
+        listViewHighScore.setStyle ( "-fx-font-family: 'courier new'; -fx-font-size: 12pt;" );
+        listViewLog.setStyle ( "-fx-font-family: 'courier new'; -fx-font-size: 8pt;" );
+
+        ObservableList<String> highScoreItems = listViewHighScore.getItems();
+        SQLiteJDBC.setHighScore ( highScoreItems );
+
+        ObservableList<String> logItems = listViewLog.getItems();
+        SQLiteJDBC.setLog ( logItems );
+        
+        newGame ();
+        
+    }
+    
+    private void newGame ()
+    {
+        for ( int r = 0; r < ( rows - 1 ); r ++ )
+        {
+            for ( int c = 0; c < columns; c ++ )
+            {
+                boardPegs [ r ][ c ].setStyle ( null );
+                boardFeedback [ r ][ c ].setStyle ( null );
+            }
+        }
+
+        rowToGuess = 0;
         setControlWidgets ();
-    }    
+        
+        inititateNewColors ();
+        showSelection ();
+        
+    
+    }
 
     private ContextMenu createContextMenu ( ContextMenu contextMenu, Button button, ColorData colorData, int column  ) {
         if ( contextMenu == null ) {
@@ -158,7 +223,7 @@ public class FXMLDocumentController implements Initializable {
         menuItem.setOnAction( new EventHandler <ActionEvent> () {
             public void handle ( ActionEvent e ) {
                 initializeButton ( button, colorData.getBgColor() );
-                intcolorselected [ column ] = colorData.getRGB ();
+                colordataCurrent [ column ].setRGB ( colorData.getRGB () );
 
                 setControlWidgets ();
             };
@@ -188,6 +253,7 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void onMenuItemGameNew(ActionEvent event) {
+        newGame ();
     }
 
     @FXML
@@ -266,79 +332,143 @@ public class FXMLDocumentController implements Initializable {
     
     private void setControlWidgets ( boolean check )
     {
+        boolean ok = true;
+
         if ( check )
         {
-            boolean ok = true;
-            
             for ( int c = 0; c < columns; c ++ )
             {
-                if ( intcolorcurrent [ c ] == -1 )
+                if ( colordataCurrent [ c ].getRGB() == -1 )
                 {
                     ok = false;
                     break;
                 }
                 
-                if ( intcolorselected [ c ] != intcolorcurrent [ c ] )
+                if ( colordataSelected [ c ].getRGB() != colordataCurrent [ c ].getRGB() )
                 {
                     ok = false;
                     break;
                 }
             }
             
-            if ( ok )
+            for ( int c = 0; c < columns; c ++ )
             {
-                for ( int c = 0; c < columns; c ++ )
-                {
-                    intcolorcurrent [ c ] = -1;
-                }
+                colordataCurrent [ c ].setRGB ( -1 );
+            }
 
-                if ( ++rowToGuess < rows )
-                {
-                    
-                }
+            if ( ++rowToGuess < rows )
+            {
+
             }
         }
 
         boolean checkDisabled = false;
         
-        for ( int r = 0; r < rows; r ++ )
+        for ( int r = 0; r < ( rows - 1 ); r ++ )
         {
             boardChecks [ r ].setDisable ( r != rowToGuess );
             boardChecks [ r ].setVisible ( r == rowToGuess );
+
+            for ( int c = 0; c < columns; c ++ )
+            {
+                boardPegs [ r ][ c ].setDisable ( r != rowToGuess || ( check && ok ) );
+            }
+
+            boardFeedback [ r ][ 0 ].getParent().setVisible ( false );
         }
         
-        for ( int c = 0; c < columns; c ++ )
+        boardFeedback [ rows - 1  ][ 0 ].getParent().setVisible ( false );
+
+            for ( int c = 0; c < columns; c ++ )
         {
-            if ( intcolorselected [ c ] == -1 )
+            if ( colordataCurrent [ c ].getRGB () == -1 )
             {
                 checkDisabled = true;
             }
         }
 
         boardChecks [ rowToGuess ].setDisable ( checkDisabled );
-        boardChecks [ rowToGuess ].setVisible ( true );
+        boardChecks [ rowToGuess ].setVisible ( ! ( check && ok ) );
+
+        for ( int r = 0; r < rowToGuess; r ++ )
+        {
+            boardFeedback [ r ][ 0 ].getParent().setVisible ( true );
+        }
+        
+        if ( check && ok )
+        {
+            Alert alert = new Alert(AlertType.CONFIRMATION);
+            alert.setTitle("MasterMind");
+            alert.setHeaderText("You bet the game in x tries");
+            alert.setContentText("What do you want to do next?");
+
+            ButtonType buttonPlayAgain = new ButtonType("Play again");
+            ButtonType buttonExit = new ButtonType("Exit");
+
+            alert.getButtonTypes().setAll ( buttonPlayAgain, buttonExit );
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == buttonPlayAgain)
+            {
+                // ... user chose "One"
+            }
+            else if ( result.get() == buttonExit )
+            {
+                System.exit ( 0 );
+            }
+            else
+            {
+                // ... user chose CANCEL or closed the dialog
+            }            
+        }
     }
 
     private void onMouseClickedCheck(Event event) {
         setControlWidgets ( true );
     }
-    
-    private void inititateNewColors ()
+
+    private int nextColor ( int steps )
     {
-        int r = randomGenerator.nextInt ( 16 );
-        
-        for ( int c = 0; c < columns; c++ )
+        while ( steps >= 0 )
         {
             for ( int i = 0; i < 8; i++)
             {
-                if ( colorData[i].isInUse () )
+                if ( colorData [ i ].isInUse () )
                 {
+                    if ( steps == 0 )
+                    {
+                        return colorData [ i ].getRGB();
+                    }
 
-
-
-
+                    steps --;
                 }
             }
         }
+        
+        return -1;
+    }
+    
+    private void inititateNewColors ()
+    {
+        for ( int c = 0; c < columns; c++ )
+        {
+            colordataSelected [ c ].setRGB( nextColor ( randomGenerator.nextInt ( 16 ) ) );
+        }
+    }
+    
+    private void showSelection ()
+    {
+        for ( int c = 0; c < columns; c++ )
+        {
+            initializeButton ( boardPegs [ rows - 1 ][ c ], colordataSelected [ c ].getBgColor () );
+            boardPegs [ rows - 1 ][ c ].setDisable ( true );
+        }
+
+        boardChecks [ rows - 1 ].setDisable ( true );
+        boardChecks [ rows - 1 ].setVisible ( false );
+    }
+
+    @FXML
+    private void onMenuItemTest(ActionEvent event) {
     }
 }

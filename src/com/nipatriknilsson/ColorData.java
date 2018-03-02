@@ -7,6 +7,7 @@ package com.nipatriknilsson;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.layout.Background;
 import javafx.scene.shape.Circle;
 
 /**
@@ -20,11 +21,18 @@ public class ColorData {
     private int htmlhextext;
     private String latinname;
 
-    ColorData(int htmlhexcolor, int htmlhextext, String latinname) {
+    ColorData ( int htmlhexcolor, int htmlhextext, String latinname ) {
         this.htmlhexcolor = htmlhexcolor;
         this.htmlhextext = htmlhextext;
         this.latinname = latinname;
         this.checked = true;
+    }
+
+    ColorData () {
+        this.htmlhexcolor = -1;
+        this.htmlhextext = -1;
+        this.latinname = "";
+        this.checked = false;
     }
 
     public String getBgColor() {
@@ -46,6 +54,15 @@ public class ColorData {
     
     public static void setStyle ( Button button, String colorBackground )
     {
+//        System.out.println ( button.getStyleClass().toString() );
+        
+//        button.getStyleClass().clear();
+//        button.getStyleClass().addAll("button");
+//        System.out.println ( button.getStyle() );
+                //.setStyle("-fx-background-color: default;");
+                
+//        button.setBackground(Background.EMPTY);
+
         button.setStyle ( getStyle ( colorBackground, null ) );
         double r = 15;
         button.setShape ( new Circle ( r ) );
@@ -60,6 +77,10 @@ public class ColorData {
         {
             s += "-fx-background-color: #" + bgColor + ";";
         }
+        else
+        {
+            s += "-fx-background-color: #f4f4f4;";
+        }
         
         if ( fgColor != null && fgColor != "" )
         {
@@ -69,6 +90,8 @@ public class ColorData {
         s += "-fx-line-spacing: 0em; -fx-font-family: san-serif,'courier new',arial; -fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 5px;";
         
         s += "-fx-border-color: #000000;";
+        
+        s += "-fx-opacity: 1.0";
 
 //        s += "-fx-alignment: center;";
 
@@ -88,6 +111,11 @@ public class ColorData {
         return htmlhexcolor;
     }
     
+    public void setRGB ( int color )
+    {
+        htmlhexcolor = color;
+    }
+
     public boolean isInUse ()
     {
         return checked;
