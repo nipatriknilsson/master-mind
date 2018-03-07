@@ -13,56 +13,61 @@ import javafx.scene.shape.Circle;
 /**
  *
  * @author user
+ * 
+ * Class to store color information and to get styles to set to widgets.
+ * Also keep track of what is selected.
  */
+
 public class ColorData {
 
     private boolean checked;
-    private int htmlhexcolor;
-    private int htmlhextext;
+    private int classcolor;
+    private int classcolortext;
     private String latinname;
 
     ColorData ( int htmlhexcolor, int htmlhextext, String latinname ) {
-        this.htmlhexcolor = htmlhexcolor;
-        this.htmlhextext = htmlhextext;
+        this.classcolor = htmlhexcolor;
+        this.classcolortext = htmlhextext;
         this.latinname = latinname;
         this.checked = true;
     }
 
     ColorData () {
-        this.htmlhexcolor = -1;
-        this.htmlhextext = -1;
+        this.classcolor = -1;
+        this.classcolortext = -1;
         this.latinname = "";
         this.checked = false;
     }
 
-    public String getBgColor() {
-        return String.format("%06x", htmlhexcolor);
+    public String getHexBgColor() {
+        return String.format("%06x", classcolor);
     }
 
-    public String getFgColor() {
-        return String.format("%06x", htmlhextext);
+    public String getHexFgColor() {
+        return String.format("%06x", classcolortext);
     }
 
     public String getName() {
         return latinname;
     }
     
+    public void setName( String latinname ) {
+        this.latinname = latinname;
+    }
+    
+    /*
+    * Set style to button with default color
+    */
     public static void setStyle ( Button button )
     {
         setStyle ( button, null );
     }
-    
+
+    /*
+    * Set style to button with color
+    */
     public static void setStyle ( Button button, String colorBackground )
     {
-//        System.out.println ( button.getStyleClass().toString() );
-        
-//        button.getStyleClass().clear();
-//        button.getStyleClass().addAll("button");
-//        System.out.println ( button.getStyle() );
-                //.setStyle("-fx-background-color: default;");
-                
-//        button.setBackground(Background.EMPTY);
-
         button.setStyle ( getStyle ( colorBackground, null ) );
         double r = 15;
         button.setShape ( new Circle ( r ) );
@@ -70,6 +75,9 @@ public class ColorData {
         button.setMaxSize ( 2 * r, 2 * r );
     }
     
+    /*
+    * Create a JavaFX style string with colors as input
+    */
     public static String getStyle ( String bgColor, String fgColor ) {
         String s = "";
         
@@ -93,30 +101,27 @@ public class ColorData {
         
         s += "-fx-opacity: 1.0";
 
-//        s += "-fx-alignment: center;";
-
         return s;
     }
 
-    public String getStyle ( boolean empty ) {
-        return getStyle ( getBgColor(), getFgColor() );
-    }
-
+    /*
+    * Get JavaFX style string
+    */
     public String getStyle () {
-        return getStyle ( getBgColor(), getFgColor() );
+        return getStyle ( getHexBgColor(), getHexFgColor() );
     }
     
     public int getRGB ()
     {
-        return htmlhexcolor;
+        return classcolor;
     }
     
     public void setRGB ( int color )
     {
-        htmlhexcolor = color;
+        classcolor = color;
     }
 
-    public boolean isInUse ()
+    public boolean isChecked ()
     {
         return checked;
     }

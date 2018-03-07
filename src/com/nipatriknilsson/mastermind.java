@@ -24,6 +24,8 @@ public class mastermind extends Application {
         Scene scene = new Scene(root);
         
         stage.setScene(scene);
+        stage.setTitle ( "MasterMind" );
+        stage.setResizable ( false );
         stage.show();
     }
 

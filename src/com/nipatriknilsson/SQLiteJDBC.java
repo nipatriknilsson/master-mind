@@ -81,7 +81,7 @@ public class SQLiteJDBC {
             localstmt.close ();
 
             localstmt = conn.createStatement();
-            localstmt.execute ( "create table if not exists highscore ( user text not null, score integer)" );
+            localstmt.execute ( "create table if not exists highscore ( user text not null, time integer, score integer)" );
             localstmt.close ();
 
             System.out.println ( "Table History created successfully" );
@@ -92,7 +92,7 @@ public class SQLiteJDBC {
         }
     }
     
-    static public void logHistory ( String event )
+    static public void addLog ( ObservableList<String> ol, String event )
     {
         SQLiteJDBC jdbc = new SQLiteJDBC();
         
@@ -113,9 +113,42 @@ public class SQLiteJDBC {
             System.out.println ( "Error executing sql: " + e.getMessage() );
             jdbc.close ();
         }
+
+        if ( ol != null )
+        {
+            setObservableLog ( ol );
+        }
     }
 
-    static public void setLog ( ObservableList<String> ol )
+    static public void addHighScore ( ObservableList<String> ol, String name, int score, long time )
+    {
+        SQLiteJDBC jdbc = new SQLiteJDBC();
+        
+        try
+        {
+            jdbc.connect ();
+            
+            String s = "insert into highscore (user,score,time) values ('" + name + "'," + score + "," + time + ")";
+            System.out.println ( s );
+            jdbc.stmt = jdbc.conn.createStatement();
+            jdbc.stmt.executeUpdate ( s );
+            jdbc.close ();
+
+            System.out.println ( "LogHistory executed successfully" );
+        }
+        catch ( Exception e )
+        {
+            System.out.println ( "Error executing sql: " + e.getMessage() );
+            jdbc.close ();
+        }
+        
+        if ( ol != null )
+        {
+            setObservableHighScore ( ol );
+        }
+    }
+
+    static public void setObservableLog ( ObservableList<String> ol )
     {
         ol.clear();
 
@@ -125,12 +158,13 @@ public class SQLiteJDBC {
         {
             jdbc.connect ();
             jdbc.stmt = jdbc.conn.createStatement();
-            jdbc.rs = jdbc.stmt.executeQuery ( "select datetime(id,'localtime'),event from history order by id desc limit 200" );
+            jdbc.rs = jdbc.stmt.executeQuery ( "select datetime(id,'localtime'),event from history order by id desc, ROWID desc limit 200" );
             
             boolean isempty = true;
             while ( jdbc.rs.next () )
             {
-                ol.add ( jdbc.rs.getString ( 1 ) + " "+ jdbc.rs.getString ( 2 ) );
+                String s = jdbc.rs.getString ( 1 ) + " "+ jdbc.rs.getString ( 2 );
+                ol.add ( s.substring ( 11 ) );
                 isempty = false;//sqlite jdbc doesn't support is empty set query
             }
             
@@ -149,7 +183,7 @@ public class SQLiteJDBC {
         }
     }
     
-    static public void setHighScore ( ObservableList<String> ol )
+    static public void setObservableHighScore ( ObservableList<String> ol )
     {
         ol.clear();
 
@@ -159,12 +193,12 @@ public class SQLiteJDBC {
         {
             jdbc.connect ();
             jdbc.stmt = jdbc.conn.createStatement();
-            jdbc.rs = jdbc.stmt.executeQuery ( "select * from highscore order by score asc limit 10" );
+            jdbc.rs = jdbc.stmt.executeQuery ( "select * from highscore order by score asc, time asc limit 5" );
 
             boolean isempty = true;
             while ( jdbc.rs.next () )
             {
-                ol.add ( jdbc.rs.getString ( 2 ) + " "+ jdbc.rs.getString ( 1 ) );
+                ol.add ( ( jdbc.rs.getString ( 1 ) + "          " ).substring ( 0, 9 ) + " " + jdbc.rs.getString ( 3 ) + " tries in " + jdbc.rs.getString ( 2 ) + " seconds" );
                 isempty = false;//sqlite jdbc doesn't support is empty set query
             }
             

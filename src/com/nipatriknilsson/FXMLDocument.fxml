@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -13,40 +14,50 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.HTMLEditor?>
 
-<AnchorPane fx:id="anchorPaneBackgroud" maxHeight="558.0" maxWidth="625.0" minHeight="558.0" minWidth="625.0" prefHeight="558.0" prefWidth="625.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nipatriknilsson.FXMLDocumentController">
+<AnchorPane fx:id="anchorPaneBackgroud" centerShape="false" maxHeight="558.0" maxWidth="625.0" minHeight="558.0" minWidth="625.0" prefHeight="558.0" prefWidth="625.0" scaleShape="false" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nipatriknilsson.FXMLDocumentController">
    <children>
       <VBox prefHeight="558.0" prefWidth="625.0">
          <children>
-            <MenuBar prefHeight="3.0" prefWidth="625.0">
+            <MenuBar fx:id="menuBar" prefHeight="3.0" prefWidth="625.0">
               <menus>
                 <Menu mnemonicParsing="false" text="Game">
                   <items>
-                        <MenuItem mnemonicParsing="false" onAction="#onMenuItemGameNew" text="New" />
+                        <MenuItem fx:id="menuItemGameNew" mnemonicParsing="false" onAction="#onMenuItemGameNew" text="New" />
                     <MenuItem mnemonicParsing="false" onAction="#onMenuItemGameExit" text="Exit" />
                   </items>
                 </Menu>
                   <Menu mnemonicParsing="false" text="Options">
                     <items>
-                        <CheckMenuItem fx:id="menuItemOptionMultiple" mnemonicParsing="false" selected="true" text="Allow multiples of the same color" />
+                        <CheckMenuItem fx:id="menuItemOptionMultiple" mnemonicParsing="false" onAction="#onMenuGameOptionMultiple" selected="true" text="Allow multiples of the same color" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow14" selected="true" text="14 Rows" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow13" selected="true" text="13 Rows" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow12" selected="true" text="12 Rows" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow11" selected="true" text="11 Rows" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow10" selected="true" text="10 Rows" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow9" selected="true" text="9 Rows" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow8" selected="true" text="8 Rows" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow7" selected="true" text="7 Rows" />
+                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow6" selected="true" text="6 Rows" />
                     </items>
                   </Menu>
                   <Menu mnemonicParsing="false" text="Color picker">
                     <items>
-                        <CheckMenuItem fx:id="menuItemColor0" mnemonicParsing="false" onAction="#onMenuItemColor0" onMenuValidation="#onUpdateMenuItemColor0" text="0" />
-                        <CheckMenuItem fx:id="menuItemColor1" mnemonicParsing="false" onAction="#onMenuItemColor1" onMenuValidation="#onUpdateMenuItemColor1" text="1" />
-                        <CheckMenuItem fx:id="menuItemColor2" mnemonicParsing="false" onAction="#onMenuItemColor2" onMenuValidation="#onUpdateMenuItemColor2" text="2" />
-                        <CheckMenuItem fx:id="menuItemColor3" mnemonicParsing="false" onAction="#onMenuItemColor3" onMenuValidation="#onUpdateMenuItemColor3" text="3" />
-                        <CheckMenuItem fx:id="menuItemColor4" mnemonicParsing="false" onAction="#onMenuItemColor4" onMenuValidation="#onUpdateMenuItemColor4" text="4" />
-                        <CheckMenuItem fx:id="menuItemColor5" mnemonicParsing="false" onAction="#onMenuItemColor5" onMenuValidation="#onUpdateMenuItemColor5" text="5" />
-                        <CheckMenuItem fx:id="menuItemColor6" mnemonicParsing="false" onAction="#onMenuItemColor6" onMenuValidation="#onUpdateMenuItemColor6" text="6" />
-                        <CheckMenuItem fx:id="menuItemColor7" mnemonicParsing="false" onAction="#onMenuItemColor7" onMenuValidation="#onUpdateMenuItemColor7" text="7" />
+                        <CheckMenuItem fx:id="menuItemColor0" mnemonicParsing="false" onAction="#onMenuItemColor0" text="0" />
+                        <CheckMenuItem fx:id="menuItemColor1" mnemonicParsing="false" onAction="#onMenuItemColor1" text="1" />
+                        <CheckMenuItem fx:id="menuItemColor2" mnemonicParsing="false" onAction="#onMenuItemColor2" text="2" />
+                        <CheckMenuItem fx:id="menuItemColor3" mnemonicParsing="false" onAction="#onMenuItemColor3" text="3" />
+                        <CheckMenuItem fx:id="menuItemColor4" mnemonicParsing="false" onAction="#onMenuItemColor4" text="4" />
+                        <CheckMenuItem fx:id="menuItemColor5" mnemonicParsing="false" onAction="#onMenuItemColor5" text="5" />
+                        <CheckMenuItem fx:id="menuItemColor6" mnemonicParsing="false" onAction="#onMenuItemColor6" text="6" />
+                        <CheckMenuItem fx:id="menuItemColor7" mnemonicParsing="false" onAction="#onMenuItemColor7" text="7" />
                     </items>
                   </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                   <items>
                     <MenuItem mnemonicParsing="false" text="About" />
-                        <MenuItem fx:id="menuitemTest" mnemonicParsing="false" onAction="#onMenuItemTest" text="Test" />
                   </items>
                 </Menu>
               </menus>
@@ -92,7 +103,7 @@
                       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                     </columnConstraints>
                     <rowConstraints>
-                      <RowConstraints maxHeight="261.0" minHeight="10.0" prefHeight="116.0" vgrow="SOMETIMES" />
+                      <RowConstraints maxHeight="261.0" minHeight="10.0" percentHeight="33.0" prefHeight="116.0" vgrow="SOMETIMES" />
                       <RowConstraints maxHeight="417.0" minHeight="10.0" prefHeight="417.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
@@ -116,6 +127,7 @@
                             </Tab>
                           </tabs>
                         </TabPane>
+                        <HTMLEditor fx:id="htmlInstruction" htmlText="&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body contenteditable=&quot;true&quot;&gt;&lt;/body&gt;&lt;/html&gt;" />
                      </children>
                   </GridPane>
                </children>
