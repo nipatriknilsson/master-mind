@@ -73,22 +73,9 @@ public class FXMLDocumentController implements Initializable {
         new ColorData ( 0x000000, 0xffffff, "Black" ),
         new ColorData ( 0xffffff, 0x000000, "White" )
     };
-    @FXML
-    private CheckMenuItem menuItemColor0;
-    @FXML
-    private CheckMenuItem menuItemColor1;
-    @FXML
-    private CheckMenuItem menuItemColor2;
-    @FXML
-    private CheckMenuItem menuItemColor3;
-    @FXML
-    private CheckMenuItem menuItemColor4;
-    @FXML
-    private CheckMenuItem menuItemColor5;
-    @FXML
-    private CheckMenuItem menuItemColor6;
-    @FXML
-    private CheckMenuItem menuItemColor7;
+    
+    int colors = colorData.length;
+    boolean booleanAllowMultipleOfTheSameColor = true;
     
     Button[][] boardPegs = new Button [ rows ][ columns ];
     Button[] boardChecks = new Button [ rows ];
@@ -117,6 +104,10 @@ public class FXMLDocumentController implements Initializable {
     private MenuItem menuItemGameNew;
     @FXML
     private MenuBar menuBar;
+    @FXML
+    private CheckMenuItem menuItemOptionSixColors;
+    @FXML
+    private CheckMenuItem menuItemOptionEightColors;
 
     private void initializeButton ( Button button ) {
         initializeButton ( button, null );
@@ -134,11 +125,9 @@ public class FXMLDocumentController implements Initializable {
         SQLiteJDBC.setObservableHighScore ( observableHighScore );
         
         //Couldn't find a read only option to HTMLEdit
-        htmlInstruction.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-        @Override
-        public void handle(KeyEvent t) {
+        htmlInstruction.addEventFilter (KeyEvent.KEY_PRESSED, (KeyEvent t) -> {
             setHtmlEdit ();
-        }});
+        });
         
         setHtmlEdit ();
         
@@ -164,6 +153,7 @@ public class FXMLDocumentController implements Initializable {
                 final int cconst = c;
                 boardPegs [ r ][ c ] = new Button();
                 boardPegs [ r ][ c ].setOnMouseClicked ( ( new EventHandler<MouseEvent>() {
+                    @Override
                     public void handle ( MouseEvent  event ) {
                         onMouseClickedPeg ( event, cconst );
                         if ( timeKeeper == 0 )
@@ -182,6 +172,7 @@ public class FXMLDocumentController implements Initializable {
             boardChecks [ r ] = new Button( "Check" );
 
             boardChecks [ r ].setOnMouseClicked ( ( new EventHandler<MouseEvent>() {
+                @Override
                 public void handle ( MouseEvent  event ) {
                 onMouseClickedCheck ( event );
                 }
@@ -219,37 +210,21 @@ public class FXMLDocumentController implements Initializable {
             colordataGuess [ c ] = new ColorData ();
         }
 
-        setMenuItem ( menuItemColor0, colorData [ 0 ] );
-        setMenuItem ( menuItemColor1, colorData [ 1 ] );
-        setMenuItem ( menuItemColor2, colorData [ 2 ] );
-        setMenuItem ( menuItemColor3, colorData [ 3 ] );
-        setMenuItem ( menuItemColor4, colorData [ 4 ] );
-        setMenuItem ( menuItemColor5, colorData [ 5 ] );
-        setMenuItem ( menuItemColor6, colorData [ 6 ] );
-        setMenuItem ( menuItemColor7, colorData [ 7 ] );
-
-        menuItemColor0.setSelected ( true );
-        menuItemColor1.setSelected ( true );
-        menuItemColor2.setSelected ( true );
-        menuItemColor3.setSelected ( true );
-        menuItemColor4.setSelected ( true );
-        menuItemColor5.setSelected ( true );
-        menuItemColor6.setSelected ( true );
-        menuItemColor7.setSelected ( true );
-
         gridPaneBoard.setStyle("-fx-border-color: #000000; -fx-border-width: 1px;");
         
         listViewHighScore.setStyle ( "-fx-font-family: 'courier new'; -fx-font-size: 12pt;" );
-        listViewLog.setStyle ( "-fx-font-family: 'courier new'; -fx-font-size: 8pt;" );
+        listViewLog.setStyle ( "-fx-font-family: 'courier new'; -fx-font-size: 10pt;" );
 
         SQLiteJDBC.addLog ( observableLog, "Started" );
         
         newGame ();
-        updateMenus ();
     }
     
     private void newGame ()
     {
+        colors = menuItemOptionSixColors.isSelected() ? 6 : 8;
+        booleanAllowMultipleOfTheSameColor = menuItemOptionMultiple.isSelected ();
+
         timeKeeper = 0;
         
         for ( int r = 0; r < rows; r ++ )
@@ -265,9 +240,6 @@ public class FXMLDocumentController implements Initializable {
         setControlWidgets ();
         
         inititateNewColors ();
-        showSelection ();
-        
-    
     }
 
     private ContextMenu createContextMenu ( ContextMenu contextMenu, Button button, ColorData colorData, int column  ) {
@@ -277,14 +249,12 @@ public class FXMLDocumentController implements Initializable {
 
         MenuItem menuItem = new MenuItem ( colorData.getName () );
         menuItem.setStyle ( colorData.getStyle() );
-        menuItem.setOnAction(new EventHandler <ActionEvent> () {
-            public void handle ( ActionEvent e ) {
-                initializeButton ( button, colorData.getHexBgColor() );
-                colordataGuess [ column ].setRGB ( colorData.getRGB () );
-                colordataGuess [ column ].setName ( colorData.getName () );
-
-                setControlWidgets ();
-            };
+        menuItem.setOnAction((ActionEvent e) -> {
+            initializeButton ( button, colorData.getHexBgColor() );
+            colordataGuess [ column ].setRGB ( colorData.getRGB () );
+            colordataGuess [ column ].setName ( colorData.getName () );
+            
+            setControlWidgets ();
         });
         
         contextMenu.getItems().add(menuItem);
@@ -301,12 +271,12 @@ public class FXMLDocumentController implements Initializable {
     private void onMouseClickedPeg(MouseEvent event, int column ) {
         ContextMenu contextMenu = null;
         
-        for ( int i = 0; i < colorData.length; i ++ )
+        for ( int i = 0; i < colors; i ++ )
         {
             contextMenu = createContextMenu ( contextMenu, (Button)event.getSource(), colorData [ i ], column );
         }
 
-        contextMenu.show ( (Button)event.getSource(), event.getScreenX(), event.getScreenY() );
+        contextMenu.show ( (Button) event.getSource(), event.getScreenX(), event.getScreenY() );
     }
 
     @FXML
@@ -317,54 +287,6 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private void onMenuItemGameExit(ActionEvent event) {
         System.exit ( 0 );
-    }
-
-    @FXML
-    private void onMenuItemColor0(ActionEvent event) {
-    }
-
-
-    @FXML
-    private void onMenuItemColor1(ActionEvent event) {
-    }
-
-
-    @FXML
-    private void onMenuItemColor2(ActionEvent event) {
-    }
-
-
-    @FXML
-    private void onMenuItemColor3(ActionEvent event) {
-    }
-
-
-    @FXML
-    private void onMenuItemColor4(ActionEvent event) {
-    }
-
-
-    @FXML
-    private void onMenuItemColor5(ActionEvent event) {
-    }
-
-
-    @FXML
-    private void onMenuItemColor6(ActionEvent event) {
-    }
-
-
-    @FXML
-    private void onMenuItemColor7(ActionEvent event) {
-    }
-
-    private void updateMenus ()
-    {
-//        menuItemGameNew.setDisable ( true );
-        
-        boolean[] menucolorchecked = new boolean [ 8 ];
-        
-//        menuItemColor0.isSelected ()
     }
 
     /*
@@ -390,14 +312,12 @@ public class FXMLDocumentController implements Initializable {
         {
             for ( int c = 0; c < columns; c ++ )
             {
-                if ( checkColors == "" )
+                if ( ! checkColors.equals ( "" ) )
                 {
-                    checkColors = colordataGuess [ c ].getName();
+                    checkColors += " ";
                 }
-                else
-                {
-                    checkColors += "," + colordataGuess [ c ].getName();
-                }
+                
+                checkColors += colordataGuess [ c ].getName().substring ( 0, 3 );
             }
 
             for ( int c = 0; c < columns; c ++ )
@@ -426,23 +346,28 @@ public class FXMLDocumentController implements Initializable {
             
             for ( int cGoal = 0; cGoal < columns; cGoal ++ )
             {
-                if ( colordataGuess [ cGoal ].getRGB() == colordataGoal [ cGoal ].getRGB() )
+                if ( colordataGuess [ cGoal ].getRGB () == colordataGoal [ cGoal ].getRGB () )
                 {
                     countBlack ++;
                     pegused [ cGoal ] = true;
                 }
             }
             
-            for ( int cGoal = 0; cGoal < columns; cGoal ++ )
+            for ( int cGuess = 0; cGuess < columns; cGuess ++ )
             {
-                for ( int cGuess = 0; cGuess < columns; cGuess ++ )
+                if ( ! pegused [ cGuess ] )
                 {
-                    if ( ! pegused [ cGuess ] )
+                    for ( int cGoal = 0; cGoal < columns; cGoal ++ )
                     {
-                        if ( colordataGuess [ cGoal ].getRGB() == colordataGoal [ cGuess ].getRGB() )
+                        if ( ! pegused [ cGoal ] )
                         {
-                            countWhite ++;
-                            pegused [ cGuess ] = true;
+                            if (  colordataGuess [ cGuess ].getRGB() == colordataGoal [ cGoal ].getRGB() )
+                            {
+                                countWhite ++;
+                                pegused [ cGoal ] = true;
+
+                                break;
+                            }
                         }
                     }
                 }
@@ -516,7 +441,7 @@ public class FXMLDocumentController implements Initializable {
         
         if ( check )
         {
-            SQLiteJDBC.addLog ( observableLog, "Guess: " + checkColors + "; " + checkFeedback );
+            SQLiteJDBC.addLog ( observableLog, "Try:  " + checkColors + "; " + checkFeedback );
         }
         
         if ( check && ok )
@@ -552,9 +477,9 @@ public class FXMLDocumentController implements Initializable {
             String s = name.getCharacters().toString();
             s = s.trim();
             
-            if ( s != "" )
+            if ( ! "".equals ( s ) )
             {
-                SQLiteJDBC.addHighScore (observableLog, s, rowToGuess, time );
+                SQLiteJDBC.addHighScore ( observableHighScore, s, rowToGuess, time );
             }
             
             if ( buttonPressed == buttonPlayAgain)
@@ -581,12 +506,17 @@ public class FXMLDocumentController implements Initializable {
     {
         while ( steps >= 0 )
         {
-            for ( int i = 0; i < 8; i++)
+            for ( int i = 0; i < colors; i++)
             {
                 if ( colorData [ i ].isChecked () )
                 {
                     if ( steps == 0 )
                     {
+                        if ( ! booleanAllowMultipleOfTheSameColor )
+                        {
+                            colorData [ i ].setChecked ( false );
+                        }
+
                         return colorData [ i ];
                     }
 
@@ -600,38 +530,29 @@ public class FXMLDocumentController implements Initializable {
     
     private void inititateNewColors ()
     {
-        String colors = "";
+        String colorsforlog = "";
+        
+        for ( int i = 0; i < colors; i ++ )
+        {
+            colorData [ i ].setChecked ( true );
+        }
         
         for ( int c = 0; c < columns; c++ )
         {
-            ColorData colorData = nextColor ( randomGenerator.nextInt ( 16 ) );
-            colordataGoal [ c ].setRGB( colorData.getRGB() );
+            ColorData colorDataTemp = nextColor ( randomGenerator.nextInt ( 16 ) );
+            colordataGoal [ c ].setRGB( colorDataTemp.getRGB() );
             
-            if ( colors == "" )
+            if ( ! colorsforlog.equals ( "" ) )
             {
-                colors = colorData.getName();
+                colorsforlog += " ";
             }
-            else
-            {
-                colors += "," + colorData.getName();
-            }
+
+            colorsforlog += colorDataTemp.getName().substring ( 0, 3 );
         }
         
-        SQLiteJDBC.addLog ( observableLog, "Goal: " + colors );
+        SQLiteJDBC.addLog ( observableLog, "Goal: " + colorsforlog );
     }
     
-    private void showSelection ()
-    {
-//        for ( int c = 0; c < columns; c++ )
-//        {
-//            initializeButton (boardPegs [ rows - 1 ][ c ], colordataGoal [ c ].getBgColor () );
-//            boardPegs [ rows - 1 ][ c ].setDisable ( true );
-//        }
-
-//        boardChecks [ rows - 1 ].setDisable ( true );
-//        boardChecks [ rows - 1 ].setVisible ( false );
-    }
-
     private void setHtmlEdit ()
     {
         try
@@ -652,38 +573,15 @@ public class FXMLDocumentController implements Initializable {
     }
 
     @FXML
-    private void onMenuGameOptionRow14(ActionEvent event) {
+    private void onMenuOptionsSixColors(ActionEvent event) {
+        menuItemOptionSixColors.setSelected ( true );
+        menuItemOptionEightColors.setSelected ( false );
     }
 
     @FXML
-    private void onMenuGameOptionRow13(ActionEvent event) {
+    private void onMenuOptionsEightColors(ActionEvent event) {
+        menuItemOptionSixColors.setSelected ( false );
+        menuItemOptionEightColors.setSelected ( true );
     }
 
-    @FXML
-    private void onMenuGameOptionRow12(ActionEvent event) {
-    }
-
-    @FXML
-    private void onMenuGameOptionRow11(ActionEvent event) {
-    }
-
-    @FXML
-    private void onMenuGameOptionRow10(ActionEvent event) {
-    }
-
-    @FXML
-    private void onMenuGameOptionRow9(ActionEvent event) {
-    }
-
-    @FXML
-    private void onMenuGameOptionRow8(ActionEvent event) {
-    }
-
-    @FXML
-    private void onMenuGameOptionRow7(ActionEvent event) {
-    }
-
-    @FXML
-    private void onMenuGameOptionRow6(ActionEvent event) {
-    }
 }

@@ -32,27 +32,8 @@
                     <items>
                         <CheckMenuItem fx:id="menuItemOptionMultiple" mnemonicParsing="false" onAction="#onMenuGameOptionMultiple" selected="true" text="Allow multiples of the same color" />
                         <SeparatorMenuItem mnemonicParsing="false" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow14" selected="true" text="14 Rows" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow13" selected="true" text="13 Rows" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow12" selected="true" text="12 Rows" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow11" selected="true" text="11 Rows" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow10" selected="true" text="10 Rows" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow9" selected="true" text="9 Rows" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow8" selected="true" text="8 Rows" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow7" selected="true" text="7 Rows" />
-                        <CheckMenuItem mnemonicParsing="false" onAction="#onMenuGameOptionRow6" selected="true" text="6 Rows" />
-                    </items>
-                  </Menu>
-                  <Menu mnemonicParsing="false" text="Color picker">
-                    <items>
-                        <CheckMenuItem fx:id="menuItemColor0" mnemonicParsing="false" onAction="#onMenuItemColor0" text="0" />
-                        <CheckMenuItem fx:id="menuItemColor1" mnemonicParsing="false" onAction="#onMenuItemColor1" text="1" />
-                        <CheckMenuItem fx:id="menuItemColor2" mnemonicParsing="false" onAction="#onMenuItemColor2" text="2" />
-                        <CheckMenuItem fx:id="menuItemColor3" mnemonicParsing="false" onAction="#onMenuItemColor3" text="3" />
-                        <CheckMenuItem fx:id="menuItemColor4" mnemonicParsing="false" onAction="#onMenuItemColor4" text="4" />
-                        <CheckMenuItem fx:id="menuItemColor5" mnemonicParsing="false" onAction="#onMenuItemColor5" text="5" />
-                        <CheckMenuItem fx:id="menuItemColor6" mnemonicParsing="false" onAction="#onMenuItemColor6" text="6" />
-                        <CheckMenuItem fx:id="menuItemColor7" mnemonicParsing="false" onAction="#onMenuItemColor7" text="7" />
+                        <CheckMenuItem fx:id="menuItemOptionSixColors" mnemonicParsing="false" onAction="#onMenuOptionsSixColors" selected="true" text="6 colors" />
+                        <CheckMenuItem fx:id="menuItemOptionEightColors" mnemonicParsing="false" onAction="#onMenuOptionsEightColors" text="8 colors" />
                     </items>
                   </Menu>
                 <Menu mnemonicParsing="false" text="Help">

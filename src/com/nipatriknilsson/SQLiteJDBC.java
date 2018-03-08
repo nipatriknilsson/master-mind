@@ -193,7 +193,7 @@ public class SQLiteJDBC {
         {
             jdbc.connect ();
             jdbc.stmt = jdbc.conn.createStatement();
-            jdbc.rs = jdbc.stmt.executeQuery ( "select * from highscore order by score asc, time asc limit 5" );
+            jdbc.rs = jdbc.stmt.executeQuery ( "select * from highscore order by score asc, time asc limit 10" );
 
             boolean isempty = true;
             while ( jdbc.rs.next () )
