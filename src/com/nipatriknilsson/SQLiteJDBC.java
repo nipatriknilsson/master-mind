@@ -23,9 +23,13 @@ public class SQLiteJDBC {
     private SQLiteJDBC()
     {
         //Make sure we only use it within this classes static members
+        //make it Private
     }
 
-    void close ()
+    /*
+    Clean up and close database
+    */
+    private void close ()
     {
         try
         {
@@ -67,14 +71,15 @@ public class SQLiteJDBC {
         }
     }
     
+    /*
+    Open database connection
+    */
     private void connect () throws ClassNotFoundException, SQLException
     {
         try
         {
             Class.forName( "org.sqlite.JDBC" );
             conn = DriverManager.getConnection("jdbc:sqlite:mastermind.db");
-
-            System.out.println ( "Opened database connection successfully" );
 
             Statement localstmt = conn.createStatement();
             localstmt.execute ( "create table if not exists history ( id datetime default current_timestamp, event text)" );
@@ -83,8 +88,6 @@ public class SQLiteJDBC {
             localstmt = conn.createStatement();
             localstmt.execute ( "create table if not exists highscore ( user text not null, time integer, score integer)" );
             localstmt.close ();
-
-            System.out.println ( "Table History created successfully" );
         }
         catch ( Exception e )
         {
@@ -92,6 +95,9 @@ public class SQLiteJDBC {
         }
     }
     
+    /*
+    Add to database and display
+    */
     static public void addLog ( ObservableList<String> ol, String event )
     {
         SQLiteJDBC jdbc = new SQLiteJDBC();
@@ -101,12 +107,10 @@ public class SQLiteJDBC {
             jdbc.connect ();
             
             String s = "insert into history (event) values ('" + event + "')";
-            System.out.println ( s );
             jdbc.stmt = jdbc.conn.createStatement();
             jdbc.stmt.executeUpdate ( s );
             jdbc.close ();
 
-            System.out.println ( "LogHistory executed successfully" );
         }
         catch ( Exception e )
         {
@@ -120,6 +124,9 @@ public class SQLiteJDBC {
         }
     }
 
+    /*
+    Add to database and display
+    */
     static public void addHighScore ( ObservableList<String> ol, String name, int score, long time )
     {
         SQLiteJDBC jdbc = new SQLiteJDBC();
@@ -129,12 +136,9 @@ public class SQLiteJDBC {
             jdbc.connect ();
             
             String s = "insert into highscore (user,score,time) values ('" + name + "'," + score + "," + time + ")";
-            System.out.println ( s );
             jdbc.stmt = jdbc.conn.createStatement();
             jdbc.stmt.executeUpdate ( s );
             jdbc.close ();
-
-            System.out.println ( "LogHistory executed successfully" );
         }
         catch ( Exception e )
         {
@@ -148,6 +152,9 @@ public class SQLiteJDBC {
         }
     }
 
+    /*
+    Sets list by reading data from the data base
+    */
     static public void setObservableLog ( ObservableList<String> ol )
     {
         ol.clear();
@@ -183,6 +190,9 @@ public class SQLiteJDBC {
         }
     }
     
+    /*
+    Sets list by reading data from the data base
+    */
     static public void setObservableHighScore ( ObservableList<String> ol )
     {
         ol.clear();

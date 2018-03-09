@@ -40,6 +40,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.web.HTMLEditor;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -119,30 +120,31 @@ public class FXMLDocumentController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        //Set observables for view of data lists
         observableHighScore = listViewHighScore.getItems();
         observableLog = listViewLog.getItems();
-        
-        SQLiteJDBC.setObservableHighScore ( observableHighScore );
         
         //Couldn't find a read only option to HTMLEdit
         htmlInstruction.addEventFilter (KeyEvent.KEY_PRESSED, (KeyEvent t) -> {
             setHtmlEdit ();
         });
-        
-        setHtmlEdit ();
-        
+
         //Hide HTMLEdit controls
         Node[] nodes = htmlInstruction.lookupAll ( ".tool-bar" ).toArray ( new Node [ 0 ] );
-        for(Node node : nodes)
+        for ( Node node : nodes )
         {
             node.setVisible ( false );
             node.setManaged ( false );
         }
+        
         htmlInstruction.setVisible ( true );
         htmlInstruction.setDisable ( false );
         htmlInstruction.autosize();
+
+        //Set html text
+        setHtmlEdit ();
         
-        //Classic Mastermind background
+        //Classic Mastermind color background
         anchorPaneBackgroud.setStyle ( "-fx-background-color: #d6926b;" );
 
         //Initiate all Pegs, Check and Feedback squares
@@ -150,14 +152,17 @@ public class FXMLDocumentController implements Initializable {
         {
             for ( int c = 0; c < columns; c ++ )
             {
+                //All buttons where colors are selected 
                 final int cconst = c;
                 boardPegs [ r ][ c ] = new Button();
+                //Click event triggers context menu
                 boardPegs [ r ][ c ].setOnMouseClicked ( ( new EventHandler<MouseEvent>() {
                     @Override
                     public void handle ( MouseEvent  event ) {
                         onMouseClickedPeg ( event, cconst );
                         if ( timeKeeper == 0 )
                         {
+                            //Start timer if not started
                             timeKeeper = System.currentTimeMillis () / 1000;
                         }
                     }
@@ -168,9 +173,11 @@ public class FXMLDocumentController implements Initializable {
 
                 gridPaneBoard.add ( boardPegs [ r ][ c ], c + columnoffset, rows - r - 1 );
             }
-            
+
+            //Check button
             boardChecks [ r ] = new Button( "Check" );
 
+            //Trigger check and change of line
             boardChecks [ r ].setOnMouseClicked ( ( new EventHandler<MouseEvent>() {
                 @Override
                 public void handle ( MouseEvent  event ) {
@@ -178,8 +185,10 @@ public class FXMLDocumentController implements Initializable {
                 }
             }));
 
+            //Add to grid
             gridPaneBoard.add ( boardChecks [ r ], 5, rows - r - 1 );
-            
+
+            //grid pane to feedback
             GridPane gridpane = new GridPane ();
             for ( int c = 0; c < columns; c ++ )
             {
@@ -204,29 +213,40 @@ public class FXMLDocumentController implements Initializable {
             gridPaneBoard.add ( gridpane, 5, rows - r - 1 );
         }
 
+        //Storage for color data
         for ( int c = 0; c < columns; c ++ )
         {
             colordataGoal [ c ] = new ColorData ();
             colordataGuess [ c ] = new ColorData ();
         }
 
+        //Set a frame
         gridPaneBoard.setStyle("-fx-border-color: #000000; -fx-border-width: 1px;");
         
+        //Set fonts to lists
         listViewHighScore.setStyle ( "-fx-font-family: 'courier new'; -fx-font-size: 12pt;" );
         listViewLog.setStyle ( "-fx-font-family: 'courier new'; -fx-font-size: 10pt;" );
 
+        //Add to logger and display
         SQLiteJDBC.addLog ( observableLog, "Started" );
         
+        //display
+        SQLiteJDBC.setObservableHighScore ( observableHighScore );
+        
+        //Initiate variables for a new game
         newGame ();
     }
     
     private void newGame ()
     {
+        //Options from menu
         colors = menuItemOptionSixColors.isSelected() ? 6 : 8;
         booleanAllowMultipleOfTheSameColor = menuItemOptionMultiple.isSelected ();
 
+        //time started reset
         timeKeeper = 0;
         
+        //erase board
         for ( int r = 0; r < rows; r ++ )
         {
             for ( int c = 0; c < columns; c ++ )
@@ -237,11 +257,17 @@ public class FXMLDocumentController implements Initializable {
         }
 
         rowToGuess = 0;
+        
+        //Set widgets
         setControlWidgets ();
         
+        //Initiate colors depending on options
         inititateNewColors ();
     }
 
+    /*
+    * Used to display right click menu on a button
+    */
     private ContextMenu createContextMenu ( ContextMenu contextMenu, Button button, ColorData colorData, int column  ) {
         if ( contextMenu == null ) {
             contextMenu = new ContextMenu ();
@@ -260,12 +286,6 @@ public class FXMLDocumentController implements Initializable {
         contextMenu.getItems().add(menuItem);
         
         return contextMenu;
-    }
-
-    private void setMenuItem ( MenuItem menuitem, ColorData colordata )
-    {
-        menuitem.setText ( colordata.getName() );
-        menuitem.setStyle ( colordata.getStyle () );
     }
     
     private void onMouseClickedPeg(MouseEvent event, int column ) {
@@ -308,8 +328,10 @@ public class FXMLDocumentController implements Initializable {
         String checkColors = "";
         String checkFeedback = "";
 
+        //User finished a row and wants to have it checked
         if ( check )
         {
+            //Prepare for log
             for ( int c = 0; c < columns; c ++ )
             {
                 if ( ! checkColors.equals ( "" ) )
@@ -320,6 +342,7 @@ public class FXMLDocumentController implements Initializable {
                 checkColors += colordataGuess [ c ].getName().substring ( 0, 3 );
             }
 
+            //Should "Check" be enabled?
             for ( int c = 0; c < columns; c ++ )
             {
                 if ( colordataGuess [ c ].getRGB() == -1 )
@@ -334,60 +357,26 @@ public class FXMLDocumentController implements Initializable {
                     break;
                 }
             }
-            
-            int countBlack = 0;
-            int countWhite = 0;
-            boolean[] pegused = new boolean [ columns ];
 
+            //Compute number of white and black feedback
+            CheckPeg checkPeg = new CheckPeg ( colordataGoal, colordataGuess );
+
+            //Prepare for logging
             for ( int c = 0; c < columns; c ++ )
             {
-                pegused [ c ] = false;
-            }
-            
-            for ( int cGoal = 0; cGoal < columns; cGoal ++ )
-            {
-                if ( colordataGuess [ cGoal ].getRGB () == colordataGoal [ cGoal ].getRGB () )
-                {
-                    countBlack ++;
-                    pegused [ cGoal ] = true;
-                }
-            }
-            
-            for ( int cGuess = 0; cGuess < columns; cGuess ++ )
-            {
-                if ( ! pegused [ cGuess ] )
-                {
-                    for ( int cGoal = 0; cGoal < columns; cGoal ++ )
-                    {
-                        if ( ! pegused [ cGoal ] )
-                        {
-                            if (  colordataGuess [ cGuess ].getRGB() == colordataGoal [ cGoal ].getRGB() )
-                            {
-                                countWhite ++;
-                                pegused [ cGoal ] = true;
-
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            for ( int c = 0; c < columns; c ++ )
-            {
-                if ( countWhite != 0 )
+                if ( checkPeg.countWhite!= 0 )
                 {
                     boardFeedback [ rowToGuess ][ c ].setStyle ( "-fx-background-color: white;-fx-border-color: white;" );
                     boardFeedback [ rowToGuess ][ c ].setOpacity ( 1 );
-                    countWhite --;
+                    checkPeg.countWhite --;
                     
                     checkFeedback += "W";
                 }
-                else if ( countBlack != 0 )
+                else if ( checkPeg.countBlack != 0 )
                 {
                     boardFeedback [ rowToGuess ][ c ].setStyle ( "-fx-background-color: black;-fx-border-color: black;" );
                     boardFeedback [ rowToGuess ][ c ].setOpacity ( 1 );
-                    countBlack --;
+                    checkPeg.countBlack --;
                     checkFeedback += "B";
                 }
                 else
@@ -396,17 +385,28 @@ public class FXMLDocumentController implements Initializable {
                     checkFeedback += "-";
                 }
             }
-            
+
+            //Prepare for next turn of guess
             for ( int c = 0; c < columns; c ++ )
             {
                 colordataGuess [ c ].setRGB ( -1 );
             }
 
             rowToGuess++;
+
+            //User used all tries?
+            if ( rowToGuess >= rows )
+            {
+                Alert alert = new Alert ( AlertType.WARNING );
+                alert.setTitle ( "MasterMind" );
+                alert.setHeaderText ( "Sorry! You have used all your tries." );
+                alert.showAndWait();
+            }
         }
 
         boolean checkDisabled = false;
-        
+
+        //Update UI
         for ( int r = 0; r < rows; r ++ )
         {
             boardChecks [ r ].setDisable ( r != rowToGuess );
@@ -443,7 +443,8 @@ public class FXMLDocumentController implements Initializable {
         {
             SQLiteJDBC.addLog ( observableLog, "Try:  " + checkColors + "; " + checkFeedback );
         }
-        
+
+        //Display user success and choise
         if ( check && ok )
         {
             Alert alert = new Alert ( AlertType.CONFIRMATION );
@@ -502,6 +503,7 @@ public class FXMLDocumentController implements Initializable {
         setControlWidgets ( true );
     }
 
+    //Select one new color depending on options
     private ColorData nextColor ( int steps )
     {
         while ( steps >= 0 )
@@ -524,19 +526,22 @@ public class FXMLDocumentController implements Initializable {
                 }
             }
         }
-        
+
+        //Error if not, should not happen
         return null;
     }
     
     private void inititateNewColors ()
     {
         String colorsforlog = "";
-        
+
+        //Used if only one color of each is allowed
         for ( int i = 0; i < colors; i ++ )
         {
             colorData [ i ].setChecked ( true );
         }
-        
+
+        //Prepare logging
         for ( int c = 0; c < columns; c++ )
         {
             ColorData colorDataTemp = nextColor ( randomGenerator.nextInt ( 16 ) );
@@ -552,7 +557,10 @@ public class FXMLDocumentController implements Initializable {
         
         SQLiteJDBC.addLog ( observableLog, "Goal: " + colorsforlog );
     }
-    
+
+    /*
+    * Sets the htmltext for help
+    */
     private void setHtmlEdit ()
     {
         try
@@ -582,6 +590,14 @@ public class FXMLDocumentController implements Initializable {
     private void onMenuOptionsEightColors(ActionEvent event) {
         menuItemOptionSixColors.setSelected ( false );
         menuItemOptionEightColors.setSelected ( true );
+    }
+
+    @FXML
+    private void onMenuItemHelpAbout(ActionEvent event) {
+        Alert alert = new Alert ( AlertType.INFORMATION );
+        alert.setTitle ( "MasterMind" );
+        alert.setHeaderText ( "Copyright 2018 Patrik Nilsson" );
+        alert.showAndWait();
     }
 
 }
